@@ -184,7 +184,7 @@ static void __ath_cancel_work(struct ath_softc *sc)
 	cancel_delayed_work_sync(&sc->tx_complete_work);
 	cancel_delayed_work_sync(&sc->hw_pll_work);
 
-#ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
+#ifdef CONFIG_ATH9K_BTCOEX_SUPPORT
 	if (ath9k_hw_mci_is_enabled(sc->sc_ah))
 		cancel_work_sync(&sc->mci_work);
 #endif
@@ -623,7 +623,7 @@ int ath_reset(struct ath_softc *sc, struct ath9k_channel *hchan)
 void ath9k_queue_reset(struct ath_softc *sc, enum ath_reset_type type)
 {
 	struct ath_common *common = ath9k_hw_common(sc->sc_ah);
-#ifdef CPTCFG_ATH9K_DEBUGFS
+#ifdef CONFIG_ATH9K_DEBUGFS
 	RESET_STAT_INC(sc, type);
 #endif
 	ath9k_hw_kill_interrupts(sc->sc_ah);
@@ -739,8 +739,6 @@ static int ath9k_start(struct ieee80211_hw *hw)
 
 	ath9k_ps_restore(sc);
 
-	ath9k_rng_register(sc);
-
 	return 0;
 }
 
@@ -829,8 +827,6 @@ static void ath9k_stop(struct ieee80211_hw *hw)
 	bool prev_idle;
 
 	ath9k_deinit_channel_context(sc);
-
-	ath9k_rng_unregister(sc);
 
 	mutex_lock(&sc->mutex);
 
@@ -1039,7 +1035,7 @@ static void ath9k_set_assoc_state(struct ath_softc *sc,
 		vif->addr, common->curbssid);
 }
 
-#ifdef CPTCFG_ATH9K_CHANNEL_CONTEXT
+#ifdef CONFIG_ATH9K_CHANNEL_CONTEXT
 static void ath9k_set_offchannel_state(struct ath_softc *sc)
 {
 	struct ath_hw *ah = sc->sc_ah;
@@ -1090,7 +1086,7 @@ void ath9k_calculate_summary_state(struct ath_softc *sc,
 	if (ctx != sc->cur_chan)
 		return;
 
-#ifdef CPTCFG_ATH9K_CHANNEL_CONTEXT
+#ifdef CONFIG_ATH9K_CHANNEL_CONTEXT
 	if (ctx == &sc->offchannel.chan)
 		return ath9k_set_offchannel_state(sc);
 #endif
@@ -1239,7 +1235,7 @@ static int ath9k_add_interface(struct ieee80211_hw *hw,
 
 	mutex_lock(&sc->mutex);
 
-	if (config_enabled(CPTCFG_ATH9K_TX99)) {
+	if (config_enabled(CONFIG_ATH9K_TX99)) {
 		if (sc->cur_chan->nvifs >= 1) {
 			mutex_unlock(&sc->mutex);
 			return -EOPNOTSUPP;
@@ -1286,7 +1282,7 @@ static int ath9k_change_interface(struct ieee80211_hw *hw,
 
 	mutex_lock(&sc->mutex);
 
-	if (config_enabled(CPTCFG_ATH9K_TX99)) {
+	if (config_enabled(CONFIG_ATH9K_TX99)) {
 		mutex_unlock(&sc->mutex);
 		return -EOPNOTSUPP;
 	}
@@ -1346,7 +1342,7 @@ static void ath9k_enable_ps(struct ath_softc *sc)
 	struct ath_hw *ah = sc->sc_ah;
 	struct ath_common *common = ath9k_hw_common(ah);
 
-	if (config_enabled(CPTCFG_ATH9K_TX99))
+	if (config_enabled(CONFIG_ATH9K_TX99))
 		return;
 
 	sc->ps_enabled = true;
@@ -1365,7 +1361,7 @@ static void ath9k_disable_ps(struct ath_softc *sc)
 	struct ath_hw *ah = sc->sc_ah;
 	struct ath_common *common = ath9k_hw_common(ah);
 
-	if (config_enabled(CPTCFG_ATH9K_TX99))
+	if (config_enabled(CONFIG_ATH9K_TX99))
 		return;
 
 	sc->ps_enabled = false;
@@ -1448,7 +1444,8 @@ static int ath9k_config(struct ieee80211_hw *hw, u32 changed)
 }
 
 #define SUPPORTED_FILTERS			\
-	(FIF_ALLMULTI |				\
+	(FIF_PROMISC_IN_BSS |			\
+	FIF_ALLMULTI |				\
 	FIF_CONTROL |				\
 	FIF_PSPOLL |				\
 	FIF_OTHER_BSS |				\
@@ -1915,7 +1912,7 @@ static int ath9k_get_survey(struct ieee80211_hw *hw, int idx,
 	struct ieee80211_channel *chan;
 	int pos;
 
-	if (config_enabled(CPTCFG_ATH9K_TX99))
+	if (config_enabled(CONFIG_ATH9K_TX99))
 		return -EOPNOTSUPP;
 
 	spin_lock_bh(&common->cc_lock);
@@ -1947,7 +1944,7 @@ static int ath9k_get_survey(struct ieee80211_hw *hw, int idx,
 
 static void ath9k_enable_dynack(struct ath_softc *sc)
 {
-#ifdef CPTCFG_ATH9K_DYNACK
+#ifdef CONFIG_ATH9K_DYNACK
 	u32 rfilt;
 	struct ath_hw *ah = sc->sc_ah;
 
@@ -1965,7 +1962,7 @@ static void ath9k_set_coverage_class(struct ieee80211_hw *hw,
 	struct ath_softc *sc = hw->priv;
 	struct ath_hw *ah = sc->sc_ah;
 
-	if (config_enabled(CPTCFG_ATH9K_TX99))
+	if (config_enabled(CONFIG_ATH9K_TX99))
 		return;
 
 	mutex_lock(&sc->mutex);
@@ -2119,7 +2116,6 @@ static int ath9k_tx_last_beacon(struct ieee80211_hw *hw)
 		bf = avp->av_bcbuf;
 		if (!bf || !bf->bf_mpdu)
 			goto skip;
-
 		status = ath9k_hw_txprocdesc(ah, bf->bf_desc, &ts);
 		if (status == -EINPROGRESS)
 			goto skip;
@@ -2238,7 +2234,7 @@ static void ath9k_sw_scan_complete(struct ieee80211_hw *hw,
 	clear_bit(ATH_OP_SCANNING, &common->op_flags);
 }
 
-#ifdef CPTCFG_ATH9K_CHANNEL_CONTEXT
+#ifdef CONFIG_ATH9K_CHANNEL_CONTEXT
 
 static void ath9k_cancel_pending_offchannel(struct ath_softc *sc)
 {
@@ -2639,19 +2635,19 @@ struct ieee80211_ops ath9k_ops = {
 	.set_antenna	    = ath9k_set_antenna,
 	.get_antenna	    = ath9k_get_antenna,
 
-#ifdef CPTCFG_ATH9K_WOW
+#ifdef CONFIG_ATH9K_WOW
 	.suspend	    = ath9k_suspend,
 	.resume		    = ath9k_resume,
 	.set_wakeup	    = ath9k_set_wakeup,
 #endif
 
-#ifdef CPTCFG_ATH9K_DEBUGFS
+#ifdef CONFIG_ATH9K_DEBUGFS
 	.get_et_sset_count  = ath9k_get_et_sset_count,
 	.get_et_stats       = ath9k_get_et_stats,
 	.get_et_strings     = ath9k_get_et_strings,
 #endif
 
-#if defined(CPTCFG_MAC80211_DEBUGFS) && defined(CPTCFG_ATH9K_STATION_STATISTICS)
+#if defined(CONFIG_MAC80211_DEBUGFS) && defined(CONFIG_ATH9K_STATION_STATISTICS)
 	.sta_add_debugfs    = ath9k_sta_add_debugfs,
 #endif
 	.sw_scan_start	    = ath9k_sw_scan_start,

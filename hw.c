@@ -279,7 +279,6 @@ static void ath9k_hw_read_revisions(struct ath_hw *ah)
 		return;
 	case AR9300_DEVID_QCA956X:
 		ah->hw_version.macVersion = AR_SREV_VERSION_9561;
-		return;
 	}
 
 	val = REG_READ(ah, AR_SREV) & AR_SREV_ID;
@@ -1819,6 +1818,7 @@ int ath9k_hw_reset(struct ath_hw *ah, struct ath9k_channel *chan,
 	u32 saveLedState;
 	u32 saveDefAntenna;
 	u32 macStaId1;
+	u32 tmp;
 	u64 tsf = 0;
 	s64 usec = 0;
 	int r;
@@ -2029,6 +2029,10 @@ int ath9k_hw_reset(struct ath_hw *ah, struct ath9k_channel *chan,
 		ah->radar_conf.ext_channel = IS_CHAN_HT40(chan);
 		ath9k_hw_set_radar_params(ah);
 	}
+	//csi_debug 
+    	tmp = REG_READ(ah,0x8344);
+    	tmp |= (1 << 28);
+    	REG_WRITE(ah, 0x8344,tmp);
 
 	return 0;
 }
@@ -2487,7 +2491,7 @@ int ath9k_hw_fill_cap_info(struct ath_hw *ah)
 	else
 		pCap->rts_aggr_limit = (8 * 1024);
 
-#ifdef CPTCFG_ATH9K_RFKILL
+#ifdef CONFIG_ATH9K_RFKILL
 	ah->rfsilent = ah->eep_ops->get_eeprom(ah, EEP_RF_SILENT);
 	if (ah->rfsilent & EEP_RFSILENT_ENABLED) {
 		ah->rfkill_gpio =
@@ -2587,7 +2591,7 @@ int ath9k_hw_fill_cap_info(struct ath_hw *ah)
 	    ah->eep_ops->get_eeprom(ah, EEP_PAPRD))
 			pCap->hw_caps |= ATH9K_HW_CAP_PAPRD;
 
-#ifdef CPTCFG_ATH9K_WOW
+#ifdef CONFIG_ATH9K_WOW
 	if (AR_SREV_9462_20_OR_LATER(ah) || AR_SREV_9565_11_OR_LATER(ah))
 		ah->wow.max_patterns = MAX_NUM_PATTERN;
 	else

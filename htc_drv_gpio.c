@@ -22,7 +22,7 @@
 
 #define ATH_HTC_BTCOEX_PRODUCT_ID "wb193"
 
-#ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
+#ifdef CONFIG_ATH9K_BTCOEX_SUPPORT
 
 /*
  * Detects if there is any priority bt traffic
@@ -216,13 +216,13 @@ void ath9k_htc_init_btcoex(struct ath9k_htc_priv *priv, char *product)
 	}
 }
 
-#endif /* CPTCFG_ATH9K_BTCOEX_SUPPORT */
+#endif /* CONFIG_ATH9K_BTCOEX_SUPPORT */
 
 /*******/
 /* LED */
 /*******/
 
-#ifdef CPTCFG_MAC80211_LEDS
+#ifdef CONFIG_MAC80211_LEDS
 void ath9k_led_work(struct work_struct *work)
 {
 	struct ath9k_htc_priv *priv = container_of(work,

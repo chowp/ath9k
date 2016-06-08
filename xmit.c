@@ -1883,11 +1883,8 @@ bool ath_drain_all_txq(struct ath_softc *sc)
 			npend |= BIT(i);
 	}
 
-	if (npend) {
-		RESET_STAT_INC(sc, RESET_TX_DMA_ERROR);
-		ath_dbg(common, RESET,
-			"Failed to stop TX DMA, queues=0x%03x!\n", npend);
-	}
+	if (npend)
+		ath_err(common, "Failed to stop TX DMA, queues=0x%03x!\n", npend);
 
 	for (i = 0; i < ATH9K_NUM_TX_QUEUES; i++) {
 		if (!ATH_TXQ_SETUP(sc, i))
@@ -2473,8 +2470,8 @@ void ath_tx_cabq(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	bf = list_first_entry(&bf_q, struct ath_buf, list);
 	hdr = (struct ieee80211_hdr *) bf->bf_mpdu->data;
 
-	if (hdr->frame_control & cpu_to_le16(IEEE80211_FCTL_MOREDATA)) {
-		hdr->frame_control &= ~cpu_to_le16(IEEE80211_FCTL_MOREDATA);
+	if (hdr->frame_control & IEEE80211_FCTL_MOREDATA) {
+		hdr->frame_control &= ~IEEE80211_FCTL_MOREDATA;
 		dma_sync_single_for_device(sc->dev, bf->bf_buf_addr,
 			sizeof(*hdr), DMA_TO_DEVICE);
 	}
@@ -2684,7 +2681,7 @@ static void ath_tx_processq(struct ath_softc *sc, struct ath_txq *txq)
 
 		lastbf = bf->bf_lastbf;
 		ds = lastbf->bf_desc;
-
+        
 		memset(&ts, 0, sizeof(ts));
 		status = ath9k_hw_txprocdesc(ah, ds, &ts);
 		if (status == -EINPROGRESS)
@@ -2739,7 +2736,6 @@ void ath_tx_edma_tasklet(struct ath_softc *sc)
 	for (;;) {
 		if (test_bit(ATH_OP_HW_RESET, &common->op_flags))
 			break;
-
 		status = ath9k_hw_txprocdesc(ah, NULL, (void *)&ts);
 		if (status == -EINPROGRESS)
 			break;
@@ -2933,7 +2929,7 @@ void ath_tx_node_cleanup(struct ath_softc *sc, struct ath_node *an)
 	}
 }
 
-#ifdef CPTCFG_ATH9K_TX99
+#ifdef CONFIG_ATH9K_TX99
 
 int ath9k_tx99_send(struct ath_softc *sc, struct sk_buff *skb,
 		    struct ath_tx_control *txctl)
@@ -2978,4 +2974,4 @@ int ath9k_tx99_send(struct ath_softc *sc, struct sk_buff *skb,
 	return 0;
 }
 
-#endif /* CPTCFG_ATH9K_TX99 */
+#endif /* CONFIG_ATH9K_TX99 */

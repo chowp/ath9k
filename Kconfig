@@ -1,12 +1,10 @@
 config ATH9K_HW
 	tristate
-	depends on m
 config ATH9K_COMMON
 	tristate
-	depends on m
 	select ATH_COMMON
-	depends on DEBUG_FS
-	depends on RELAY
+	select DEBUG_FS
+	select RELAY
 config ATH9K_DFS_DEBUGFS
 	def_bool y
 	depends on ATH9K_DEBUGFS && ATH9K_DFS_CERTIFIED
@@ -21,12 +19,11 @@ config ATH9K_BTCOEX_SUPPORT
 
 config ATH9K
 	tristate "Atheros 802.11n wireless cards support"
-	depends on m
 	depends on MAC80211 && HAS_DMA
 	select ATH9K_HW
 	select MAC80211_LEDS
-	select BPAUTO_LEDS_CLASS
-	select BPAUTO_NEW_LEDS
+	select LEDS_CLASS
+	select NEW_LEDS
 	select ATH9K_COMMON
 	---help---
 	  This module adds support for wireless adapters based on
@@ -63,7 +60,7 @@ config ATH9K_DEBUGFS
 	bool "Atheros ath9k debugging"
 	depends on ATH9K && DEBUG_FS
 	select MAC80211_DEBUGFS
-	depends on RELAY
+	select RELAY
 	---help---
 	  Say Y, if you need access to ath9k's statistics for
 	  interrupts, rate control, etc.
@@ -160,12 +157,11 @@ config ATH9K_PCOEM
 
 config ATH9K_HTC
        tristate "Atheros HTC based wireless cards support"
-       depends on m
        depends on USB && MAC80211
        select ATH9K_HW
        select MAC80211_LEDS
-       select BPAUTO_LEDS_CLASS
-       select BPAUTO_NEW_LEDS
+       select LEDS_CLASS
+       select NEW_LEDS
        select ATH9K_COMMON
        ---help---
 	 Support for Atheros HTC based cards.
@@ -180,10 +176,3 @@ config ATH9K_HTC_DEBUGFS
 	depends on ATH9K_HTC && DEBUG_FS
 	---help---
 	  Say Y, if you need access to ath9k_htc's statistics.
-
-config ATH9K_HWRNG
-	bool "Random number generator support"
-	depends on ATH9K && (HW_RANDOM = y || HW_RANDOM = ATH9K)
-	default y
-	---help---
-	  Provides a hardware random number generator to the kernel.
